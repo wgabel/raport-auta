@@ -16,10 +16,54 @@ const groups=["Ford B-Max","Ford EcoSport","Opel Meriva"];
 const fmt=n=>n==null?"—":n.toLocaleString("pl-PL");
 const badge=d=>d<=50?'<span class="badge near">🟢 BLISKO · ~'+d+' km</span>':d<=150?'<span class="badge mid">🟡 NIEDALEKO · ~'+d+' km</span>':d>=900?'<span class="badge far">⚪ ODLEGŁOŚĆ DO UZUPEŁNIENIA</span>':'<span class="badge far">⚪ DALEJ · ~'+d+' km</span>';
 function render(){document.getElementById("app").innerHTML=groups.map((g,gi)=>{const subset=cars.filter(c=>c.m===g);const rows=subset.map(c=>{
-const pic=c.img?'<a href="'+c.url+'" target="_blank"><img src="'+c.img+'" alt="" onerror="this.parentElement.innerHTML=\'<div class=&quot;ph&quot;>Zdjęcie w ogłoszeniu</div>\'"></a>':'<a href="'+c.url+'" target="_blank"><div class="ph">📷<br>Zdjęcie w ogłoszeniu</div></a>';
+const pic='<a class="photoLink" href="'+c.url+'" target="_blank" rel="noopener"><div class="ph remote-photo" data-url="'+c.url.replace(/"/g,'&quot;')+'" data-fallback="'+(c.img||'')+'">📷<br>Ładowanie zdjęcia…</div></a>';
 return '<tr data-d="'+c.d+'" data-t="'+(c.r.startsWith("✅")?1:0)+'"><td class="photo">'+pic+'</td><td><strong>'+c.t+'</strong><br><small>'+c.e+'</small></td><td data-n="'+c.y+'">'+c.y+'</td><td data-n="'+c.km+'">'+fmt(c.km)+' km</td><td data-n="'+c.p+'"><strong>'+fmt(c.p)+' zł</strong></td><td data-n="'+c.d+'">'+c.loc+'<br>'+badge(c.d)+'</td><td>'+c.f+'</td><td class="'+(c.r.startsWith("✅")?"ok":"")+'">'+c.r+'</td><td>'+c.s+'</td><td>'+c.portal+'<br><a class="btn" href="'+c.url+'" target="_blank" rel="noopener">Otwórz ogłoszenie ↗</a></td></tr>'}).join("");
 return '<section><h2>'+g+' <small>('+subset.length+')</small></h2><div class="filters"><button onclick="filterRows('+gi+',\'all\')">Wszystkie</button><button onclick="filterRows('+gi+',\'near\')">Do ~150 km</button><button onclick="filterRows('+gi+',\'timing\')">Rozrząd wymieniony</button></div><div class="wrap"><table id="t'+gi+'"><thead><tr><th>Zdjęcie</th><th>Oferta</th><th onclick="sortRows('+gi+',2)">Rok ↕</th><th onclick="sortRows('+gi+',3)">Przebieg ↕</th><th onclick="sortRows('+gi+',4)">Cena ↕</th><th onclick="sortRows('+gi+',5)">Lokalizacja ↕</th><th>Paliwo</th><th>Rozrząd</th><th>Serwis / uwagi</th><th>Link</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>'}).join("")}
 let dirs={};function sortRows(i,col){const tb=document.querySelector("#t"+i+" tbody"),rows=[...tb.rows],k=i+"-"+col;dirs[k]=dirs[k]==="asc"?"desc":"asc";const d=dirs[k]==="asc"?1:-1;rows.sort((a,b)=>(+a.cells[col].dataset.n- +b.cells[col].dataset.n)*d);rows.forEach(r=>tb.appendChild(r))}
 function filterRows(i,m){[...document.querySelector("#t"+i+" tbody").rows].forEach(r=>r.style.display=(m==="all"||(m==="near"&&+r.dataset.d<=150)||(m==="timing"&&r.dataset.t==="1"))?"":"none")}
+async function fetchRemoteImage(el){
+  const offerUrl=el.dataset.url;
+  const fallback=el.dataset.fallback;
+  try{
+    const api='https://api.microlink.io/?url='+encodeURIComponent(offerUrl)+'&filter=image.url';
+    const res=await fetch(api);
+    if(!res.ok) throw new Error('metadata '+res.status);
+    const json=await res.json();
+    const src=json && json.data && json.data.image && json.data.image.url;
+    if(!src) throw new Error('no image');
+    const img=new Image();
+    img.alt='Zdjęcie auta z ogłoszenia';
+    img.loading='lazy';
+    img.referrerPolicy='no-referrer';
+    img.onload=()=>el.replaceWith(img);
+    img.onerror=()=>{ if(fallback) tryFallback(el,fallback); else showNoPhoto(el); };
+    img.src=src;
+  }catch(e){
+    if(fallback) tryFallback(el,fallback); else showNoPhoto(el);
+  }
+}
+function tryFallback(el,src){
+  const img=new Image();
+  img.alt='Zdjęcie auta z ogłoszenia';
+  img.loading='lazy';
+  img.referrerPolicy='no-referrer';
+  img.onload=()=>el.replaceWith(img);
+  img.onerror=()=>showNoPhoto(el);
+  img.src=src;
+}
+function showNoPhoto(el){
+  el.innerHTML='📷<br>Zdjęcie niedostępne';
+}
+async function loadPortalImages(){
+  const els=[...document.querySelectorAll('.remote-photo')];
+  const workers=Array.from({length:4},async()=>{
+    while(els.length){
+      const el=els.shift();
+      if(el) await fetchRemoteImage(el);
+    }
+  });
+  await Promise.all(workers);
+}
 render();
+loadPortalImages();
 </script></body></html>
