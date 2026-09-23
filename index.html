@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Raport aut</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f5f6f8;color:#172033}
+header{background:#111827;color:#fff;padding:24px}
+main{max-width:1500px;margin:auto;padding:20px}
+section{background:#fff;border-radius:12px;padding:16px;margin-bottom:24px;box-shadow:0 1px 4px #0002}
+.wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;min-width:1250px}
+th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
+th{background:#f8fafc;white-space:nowrap;cursor:pointer}
+small{color:#667085}
+.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:700;margin-top:4px}
+.near{background:#dcfce7;color:#166534}.mid{background:#fef3c7;color:#92400e}.far{background:#f1f5f9;color:#475569}
+.ok{color:#166534;font-weight:700}
+.btn{display:inline-block;margin-top:5px;padding:6px 9px;border-radius:7px;background:#175cd3;color:white;text-decoration:none}
+.filters{margin:10px 0}.filters button{margin-right:6px;padding:6px 9px}
+.note{background:#fff8dc;border:1px solid #eadc9a;padding:12px 14px;border-radius:10px;margin:14px 0}
+</style>
+</head>
+<body>
+<header>
+<h1>Samochody do zakupu — raport ofert</h1>
+<div>Ford B-Max → Ford EcoSport → Opel Meriva · rok 2016+ · przebieg ≤160 000 km · benzyna/LPG</div>
+</header>
+<main>
+<div class="note"><strong>Aktualizacja: 23.09.2026.</strong> Oferty z całej Polski, z wyróżnieniem odległości od Wrocławia. Dane serwisowe są deklaracjami sprzedających i wymagają potwierdzenia dokumentami.</div>
+<div id="app"></div>
+</main>
+<script>
+const cars = [
+["Ford B-Max","B-MAX 1.0 EcoBoost Trend",2017,142500,21000,"Luciny",135,"1.0 EcoBoost 100 KM","Benzyna","Brak informacji","Serwisowany w ASO wg parametrów ogłoszenia","Otomoto","https://www.otomoto.pl/osobowe/oferta/ford-b-max-ID6IdVnc.html"],
+["Ford B-Max","B-MAX – Salon PL / 1 właściciel / Serwis ASO",2017,77075,26000,"Katowice",195,"1.0 EcoBoost 100 KM","Benzyna","Brak informacji","Salon Polska, 1 właściciel, serwis ASO wg tytułu","Otomoto","https://www.otomoto.pl/osobowe/oferta/ford-b-max-ID6Idu3Y.html"],
+["Ford B-Max","B-MAX 1.4 SYNC Edition",2018,78900,29999,"Ignatki",475,"1.4 90 KM","Benzyna","Brak informacji","Deklarowany niski przebieg / model 2018","Otomoto","https://www.otomoto.pl/osobowe/oferta/ford-b-max-ID6Ie0u6.html"],
+["Ford B-Max","B-MAX 1.0 EcoBoost Titanium EU6",2017,91000,28900,"Skoczów",225,"1.0 EcoBoost 100 KM","Benzyna","Brak informacji","Salon PL, I właściciel wg tytułu","Otomoto","https://www.otomoto.pl/osobowe/oferta/ford-b-max-ID6Icbeu.html"],
+["Ford B-Max","B-MAX 1.0 EcoBoost COOL&CONNECT",2018,110000,23500,"Halinów",370,"1.0 EcoBoost 100 KM","Benzyna","Brak informacji","Bogatsza wersja COOL&CONNECT","Otomoto","https://www.otomoto.pl/osobowe/oferta/ford-b-max-ID6Iejhv.html"],
+["Ford B-Max","B-MAX 1.0 – auto serwisowane",2017,100222,32000,"Bielsko-Biała",235,"1.0 101 KM","Benzyna","Brak informacji","1 właściciel, serwis co roku, winter package, 2 komplety kół","Autoplac","https://autoplac.pl/oferta/ford/b-max/1-0-2017r-auto-serwisowane-6914-2373-JV"],
+["Ford B-Max","B-MAX 1.0 125 KM",2017,133966,30000,"Nowa Kopernia",150,"1.0 125 KM","Benzyna","Brak informacji","Zarejestrowany, bezwypadkowy wg ogłoszenia","Autoplac","https://autoplac.pl/oferta/ford/b-max/1-0-2017r-b-max-0575-6535-CT"],
+["Ford B-Max","B-MAX 1.6 automat",2016,82000,29999,"Kraków",270,"1.6 105 KM","Benzyna","Brak informacji","Bezwypadkowy wg ogłoszenia; kamera, navi, grzane fotele i szyba","Autoplac","https://autoplac.pl/oferta/ford/b-max/1-6-2016r-navi-kamera-cofania-automat-benzyna-8340-4591-MM"],
+
+["Ford EcoSport","EcoSport 1.0 EcoBoost ST-Line automat",2018,56000,37700,"Czaniec",230,"1.0 EcoBoost 125 KM","Benzyna","Brak informacji","Niski przebieg deklarowany w ogłoszeniu","Otomoto","https://www.otomoto.pl/osobowe/oferta/ford-ecosport-ID6I6v0k.html"],
+["Ford EcoSport","EcoSport 1.0 EcoBoost Titanium X automat",2018,87000,39999,"Kraków",270,"1.0 EcoBoost 125 KM","Benzyna","Brak informacji","Bezwypadkowy / bogata wersja wg opisu","Otomoto","https://www.otomoto.pl/osobowe/oferta/ford-ecosport-ID6IfjVH.html"],
+["Ford EcoSport","EcoSport ST-Line automat Black Edition",2019,75000,45900,"Czarny Bór",85,"1.0 EcoBoost 125 KM","Benzyna","Brak informacji","ST-Line / Black Edition","Otomoto","https://www.otomoto.pl/osobowe/oferta/ford-ecosport-ID6Ifjcc.html"],
+["Ford EcoSport","EcoSport 1.0 benzyna",2018,103500,35900,"Konin",185,"1.0 125 KM","Benzyna","✅ Wymieniony rozrząd","Wymieniony olej i filtry; klima; nowy akumulator 08.2026; nowe opony letnie","OLX","https://www.olx.pl/d/oferta/ford-ecosport-1-0-benzyna-2018-rok-CID5-ID1cciqA.html"],
+["Ford EcoSport","EcoSport 1.0 EcoBoost Trend",2018,77208,39000,"Mysłowice",195,"1.0 EcoBoost 125 KM","Benzyna","✅ Wymieniony rozrząd","Wymienione sprzęgło i klocki; akumulator 2025; dokumentacja napraw wg opisu","OLX / Otomoto","https://www.olx.pl/d/oferta/ford-ecosport-ford-ecosport-CID5-ID1c5NRh.html"],
+["Ford EcoSport","EcoSport ST-Line",2018,118000,39500,"Szamotuły",190,"1.0 125 KM","Benzyna","Brak informacji","Import Francja; 2 kluczyki; wielosezonowe opony","OLX","https://www.olx.pl/d/oferta/ford-ecosport-ford-ecosport-st-line-2018-CID5-ID1cj2o9.html"],
+["Ford EcoSport","EcoSport 1.0 Lift – nowa turbina",2018,100000,27900,"Kościelec",175,"1.0 EcoBoost 100 KM","Benzyna","Brak informacji","Po serwisie: nowa turbina i pompa vacuum, wyczyszczony smok, wymieniony olej","OLX","https://www.olx.pl/d/oferta/ford-ecosport-1-0-lift-klimatronik-podgrzewana-kierownica-fotele-nowa-turbina-CID5-ID1cbVg6.html"],
+["Ford EcoSport","EcoSport ST-Line 1.0 140 KM",2018,110000,38890,"Piła",275,"1.0 140 KM","Benzyna","Brak informacji","Grzana szyba/fotele/kierownica, duży ekran","OLX","https://www.olx.pl/d/oferta/ford-ecosport-st-line-1-0-140km-CID5-ID1c9Ekx.html"],
+["Ford EcoSport","EcoSport – niski przebieg, automat",2018,60000,41900,"Ełk",535,"1.0 125 KM","Benzyna","Brak informacji","Kamera, PDC przód/tył, CarPlay/Android Auto, keyless","OLX / Otomoto","https://www.olx.pl/d/oferta/ford-ecosport-stan-idealny-CID5-ID1bQNaK.html"],
+["Ford EcoSport","EcoSport ST-Line Black",2018,108521,null,"Czarny Bór",85,"1.0 125 KM","Benzyna","Brak informacji","Salon Polska wg ogłoszenia","OLX","https://www.olx.pl/d/oferta/ford-ecosport-125ps-st-line-black-CID5-ID1bKnQU.html"],
+
+["Opel Meriva","Meriva 1.4 T Enjoy LPG",2017,143985,29900,"Suchy Las",180,"1.4 Turbo 120 KM","Benzyna + LPG","Brak informacji","Salon Polska, I właściciel wg tytułu","Otomoto","https://www.otomoto.pl/osobowe/oferta/opel-meriva-ID6IePti.html"],
+["Opel Meriva","Meriva 1.4 Design Edition",2017,110800,34900,"Kraków",270,"1.4 Turbo 140 KM","Benzyna","Brak informacji","Serwis ASO, po dużym serwisie, gwarancja wg tytułu","Otomoto","https://www.otomoto.pl/osobowe/oferta/opel-meriva-ID6IdJ1l.html"],
+["Opel Meriva","Meriva 1.4 T Enjoy",2017,85000,28500,"Gdańsk",480,"1.4 Turbo 120 KM","Benzyna","Brak informacji","Zweryfikowane dane Otomoto","Otomoto","https://www.otomoto.pl/osobowe/oferta/opel-meriva-ID6I9iUG.html"],
+["Opel Meriva","Meriva 1.4 T Cosmo S&S",2016,80077,32900,"Skrzeszew",390,"1.4 Turbo 120 KM","Benzyna","Brak informacji","Cosmo; panorama, kamera, nawigacja; niski przebieg wg tytułu","Otomoto","https://www.otomoto.pl/osobowe/oferta/opel-meriva-ID6Ifio4.html"],
+["Opel Meriva","Meriva II 1.4 140 KM",2016,119000,23900,"Aleksandria",170,"1.4 140 KM","Benzyna","Brak informacji","Pierwszy właściciel i bezwypadkowy wg ogłoszenia","Autoplac","https://autoplac.pl/oferta/opel/meriva/ii-1-4-2016r-benzyna-3877-3728-BX"]
+];
+
+const groups=["Ford B-Max","Ford EcoSport","Opel Meriva"];
+const fmt=n=>n==null?"—":n.toLocaleString("pl-PL");
+const badge=d=>d<=50?'<span class="badge near">🟢 BLISKO · ~'+d+' km</span>':d<=150?'<span class="badge mid">🟡 NIEDALEKO · ~'+d+' km</span>':'<span class="badge far">⚪ DALEJ · ~'+d+' km</span>';
+
+function render(){
+ document.getElementById("app").innerHTML=groups.map((g,gi)=>{
+   const rows=cars.filter(c=>c[0]===g).map(c=>'<tr data-d="'+c[6]+'" data-t="'+(c[9].startsWith("✅")?1:0)+'">'+
+   '<td><strong>'+c[1]+'</strong><br><small>'+c[7]+'</small></td>'+
+   '<td data-n="'+c[2]+'">'+c[2]+'</td>'+
+   '<td data-n="'+c[3]+'">'+fmt(c[3])+' km</td>'+
+   '<td data-n="'+(c[4]??999999999)+'"><strong>'+fmt(c[4])+(c[4]?" zł":"")+'</strong></td>'+
+   '<td data-n="'+c[6]+'">'+c[5]+'<br>'+badge(c[6])+'</td>'+
+   '<td>'+c[8]+'</td>'+
+   '<td class="'+(c[9].startsWith("✅")?"ok":"")+'">'+c[9]+'</td>'+
+   '<td>'+c[10]+'</td>'+
+   '<td>'+c[11]+'<br><a class="btn" href="'+c[12]+'" target="_blank" rel="noopener">Otwórz ogłoszenie ↗</a></td></tr>').join("");
+   return '<section><h2>'+g+'</h2><div class="filters"><button onclick="filterRows('+gi+',\'all\')">Wszystkie</button><button onclick="filterRows('+gi+',\'near\')">Do ~150 km</button><button onclick="filterRows('+gi+',\'timing\')">Rozrząd wymieniony</button></div><div class="wrap"><table id="t'+gi+'"><thead><tr><th>Oferta</th><th onclick="sortRows('+gi+',1)">Rok ↕</th><th onclick="sortRows('+gi+',2)">Przebieg ↕</th><th onclick="sortRows('+gi+',3)">Cena ↕</th><th onclick="sortRows('+gi+',4)">Lokalizacja ↕</th><th>Paliwo</th><th>Rozrząd</th><th>Serwis / uwagi</th><th>Link</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';
+ }).join("");
+}
+let dirs={};
+function sortRows(i,col){
+ const tb=document.querySelector("#t"+i+" tbody"),rows=[...tb.rows],key=i+"-"+col;
+ dirs[key]=dirs[key]==="asc"?"desc":"asc";
+ const d=dirs[key]==="asc"?1:-1;
+ rows.sort((a,b)=>(+a.cells[col].dataset.n- +b.cells[col].dataset.n)*d);
+ rows.forEach(r=>tb.appendChild(r));
+}
+function filterRows(i,mode){
+ [...document.querySelector("#t"+i+" tbody").rows].forEach(r=>{
+   const show=mode==="all"||(mode==="near"&&+r.dataset.d<=150)||(mode==="timing"&&r.dataset.t==="1");
+   r.style.display=show?"":"none";
+ });
+}
+render();
+</script>
+</body>
+</html>
